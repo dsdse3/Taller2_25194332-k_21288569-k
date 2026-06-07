@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Suelo
   - Bala
+  - Obstaculo
+  - Enemigo
+  - Moneda
   layers:
   - Default
   - TransparentFX

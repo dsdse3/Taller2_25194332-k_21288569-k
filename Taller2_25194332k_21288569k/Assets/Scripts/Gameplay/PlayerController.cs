@@ -65,9 +65,21 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        // Si toca el piso firme, le permite volver a saltar
         if (collision.gameObject.CompareTag("Suelo"))
         {
             enElSuelo = true;
+        }
+        
+        // MEDIDA DE SEGURIDAD: Si choca físicamente contra un Obstáculo o un Enemigo,
+        // se activa el menú de derrota / reinicio tal como exige el enunciado.
+        if (collision.gameObject.CompareTag("Obstaculo") || collision.gameObject.CompareTag("Enemigo"))
+        {
+            Debug.Log("Impacto físico detectado con peligro. Reiniciando juego...");
+            // Llama al reinicio de escena directo por seguridad
+            UnityEngine.SceneManagement.SceneManager.LoadScene(
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
+            );
         }
     }
 }
