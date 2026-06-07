@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement; // Necesario para reiniciar la partida
+using UnityEngine.SceneManagement; // Necesario para reiniciar la pa
 
 /// <summary>
 /// Clase base (Padre) que define el comportamiento común de los obstáculos y enemigos.
