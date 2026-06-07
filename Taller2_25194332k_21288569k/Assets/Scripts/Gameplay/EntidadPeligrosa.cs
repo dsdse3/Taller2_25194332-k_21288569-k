@@ -16,7 +16,7 @@ public class EntidadPeligrosa : MonoBehaviour
     // Detecta cuando la bala (que es un Trigger) impacta la entidad
     private void OnTriggerEnter(Collider other)
     {
-        // Regla: Destruirse al recibir un proyectil (bala) del jugador
+        // Regla: Destruirse al recibir un proyectil (bala) del jugado
         if (other.CompareTag("Bala"))
         {
             // Aquí podrías activar un sonido de muerte si lo deseas
