@@ -113,6 +113,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nombreEntidad: Zombie
   velocidadZombie: 4
+  sonidoMuerte: {fileID: 8300000, guid: eb82bc563c008441fba36e3ccc9dd0a2, type: 3}
 --- !u!136 &1263276710802130971
 CapsuleCollider:
   m_ObjectHideFlags: 0

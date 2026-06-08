@@ -1,32 +1,45 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro; // Necesario para usarTextMeshPro (el sistema moderno de texto de Unity)
+using TMPro;
 
-
-// Clase que administra el estado global de la partida, puntajes, UI y coleccionables.
+/// <summary>
+/// Administra el estado global de la partida, puntajes, UI, coleccionables y todo el sistema de audio.
+/// Incluye soporte para activar el Menú de Derrota interactivo.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
-    // Instancia estática del Singleton
     public static GameManager Instance { get; private set; }
 
     [Header("UI Text References")]
-    // Referencias a los textos de la UI para mostrar monedas y puntaje
     public TextMeshProUGUI textoMonedas;
-    // El texto de puntaje se actualizará dinámicamente según la distancia recorrida por el jugador
     public TextMeshProUGUI textoPuntaje;
 
+    [Header("Menú de Derrota (Nuevo)")]
+    // Aquí arrastraremos el objeto "MenuDerrota" desde la jerarquía
+    public GameObject panelMenuDerrota; 
+
     [Header("Referencias de Juego")]
-    // Referencia al transform del jugador para calcular la distancia recorrida
     public Transform jugadorTransform;
-    // Contador de monedas recolectadas por el jugador durante la partida
     private int cantidadMonedas = 0;
-    // Guardamos la posición inicial en Z del jugador para calcular la distancia real recorrida
     private float posicionInicialZ;
+    private bool juegoTerminado = false; // Control interno para congelar el puntaje al morir
+
+    [Header("Asignación de Canales de Audio")]
+    public AudioSource canalEfectos; 
+    public AudioSource canalMusica;  
+
+    [Header("Efectos de Sonido (AudioClips)")]
+    public AudioClip sonidoDisparo;
+    public AudioClip sonidoMoneda;
+    public AudioClip sonidoMuerteEnemigo;
+
+    [Header("Música del Juego")]
+    public AudioClip musicaFondo;
+    public AudioClip musicaDerrota;
 
     void Awake()
     {
-        // Configuración del Singleton seguro
         if (Instance == null)
         {
             Instance = this;
@@ -34,44 +47,113 @@ public class GameManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
+            return;
         }
     }
 
     void Start()
     {
-        // Guardamos el punto de inicio en Z del jugador para calcular la distancia real recorrida
         if (jugadorTransform != null)
         {
             posicionInicialZ = jugadorTransform.position.z;
         }
         
+        // REQUISITO: Al iniciar la partida, el menú debe estar completamente oculto
+        if (panelMenuDerrota != null)
+        {
+            panelMenuDerrota.SetActive(false);
+        }
+
+        juegoTerminado = false;
         ActualizarUI();
+
+        // Configuramos la música de fondo de forma segura
+        if (canalMusica != null && musicaFondo != null)
+        {
+            canalMusica.clip = musicaFondo;
+            canalMusica.loop = true;
+            canalMusica.playOnAwake = false;
+            canalMusica.Play();
+        }
     }
 
     void Update()
     {
-        // El puntaje incrementa según la distancia que va avanzando el jugador (Regla del taller)
+        // Si el juego ya terminó por un choque, no seguimos aumentando el puntaje
+        if (juegoTerminado) return;
+
         if (jugadorTransform != null)
         {
             float distanciaRecorridda = jugadorTransform.position.z - posicionInicialZ;
             int puntajeActual = Mathf.Max(0, Mathf.FloorToInt(distanciaRecorridda));
-            
-            // Mostramos el puntaje con formato de ocho dígitos (ej: 00001234) coincidiendo con la rúbrica
             textoPuntaje.text = "PUNTUACIÓN: " + puntajeActual.ToString("D8");
         }
     }
 
- 
-    // Incrementa el contador de monedas y refresca el texto en la pantalla.
-    public void SumarMoneda()
+    // --- MÉTODOS DE CONTROL DE JUEGO & UI ---
+
+    /// <summary>
+    /// Hace aparecer el menú de derrota visual y cambia la música de fondo.
+    /// </summary>
+    public void MostrarMenuDerrota()
     {
-        cantidadMonedas++;
-        ActualizarUI();
+        juegoTerminado = true;
+
+        if (panelMenuDerrota != null)
+        {
+            panelMenuDerrota.SetActive(true); // Enciende el panel gris con el botón
+        }
+
+        // Ejecuta automáticamente el cambio de música a la pista de derrota
+        ActivarMusicaDerrota();
+    }
+
+    /// <summary>
+    /// Función pública que ejecutará tu botón "BotonReiniciar" al hacerle clic.
+    /// </summary>
+    public void EventoBotonReiniciar()
+    {
+        // Recarga la escena activa desde cero de forma segura
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
+        );
     }
 
     private void ActualizarUI()
     {
-        // Muestra las monedas con formato de dos dígitos (ej: 09) coincidiendo con la rúbrica
         textoMonedas.text = "MONEDAS: " + cantidadMonedas.ToString("D2");
+    }
+
+    // --- MÉTODOS DE AUDIO ---
+
+    public void PlaySonidoDisparo()
+    {
+        if (sonidoDisparo != null && canalEfectos != null) 
+            canalEfectos.PlayOneShot(sonidoDisparo);
+    }
+
+    public void SumarMoneda()
+    {
+        cantidadMonedas++;
+        ActualizarUI();
+        if (sonidoMoneda != null && canalEfectos != null) 
+            canalEfectos.PlayOneShot(sonidoMoneda);
+    }
+
+    public void PlaySonidoMuerte()
+    {
+        if (sonidoMuerteEnemigo != null && canalEfectos != null) 
+            canalEfectos.PlayOneShot(sonidoMuerteEnemigo);
+    }
+
+    public void ActivarMusicaDerrota()
+    {
+        if (canalMusica != null && musicaDerrota != null)
+        {
+            canalMusica.Stop(); 
+            canalMusica.loop = false; 
+            canalMusica.clip = musicaDerrota;
+            canalMusica.Play(); 
+        }
     }
 }
